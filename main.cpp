@@ -26,7 +26,7 @@ int main() {
         return 1;
     }
     std::string line;
-    line = code_input;
+    code_input += line;
     while (getline(in, line)) {  // read line by line
         
     }
