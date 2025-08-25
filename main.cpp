@@ -3,101 +3,84 @@
 #include<fstream>
 #include<string>
 #include<stack>
-#include<set>
 #include<unordered_map>
 
 int main() {
-    //Start of code
-    //Assume this is the code
     std::string code_input;
-    //the base
-    std::stack<size_t> loop;
-    int ptr = 0;
-    std::vector<unsigned char> tape(30000, 0);
-    std::unordered_map<int,int> loop_bracket_matching;
-    int bracket_matching_error = 0;
-    bool error = false;
+
+    // read file name from user
     std::string file_name;
-    std::cin>>file_name;
-    std::cout<<std::endl;
+    std::cin >> file_name;
     std::ifstream in(file_name);
+
     if (!in) {
         std::cout << "Error opening file!" << std::endl;
         return 1;
     }
+
+    // read entire file into code_input
     std::string line;
-    code_input += line;
-    while (getline(in, line)) {  // read line by line
-        
+    while (getline(in, line)) {
+        code_input += line; // append each line
     }
     in.close();
-    
-    
-    for(int i =0;i<code_input.size();i++){
-        if(code_input[i] == '['||code_input[i] == ']'){
-            bracket_matching_error += 1;
+
+    // Brainfuck setup
+    std::stack<size_t> loop;
+    int ptr = 0;
+    std::vector<unsigned char> tape(30000, 0);
+    std::unordered_map<int,int> loop_bracket_matching;
+    bool error = false;
+
+    // bracket matching
+    int open_brackets = 0;
+    for (int i = 0; i < code_input.size(); i++) {
+        if (code_input[i] == '[') {
+            loop.push(i);
+            open_brackets++;
+        } else if (code_input[i] == ']') {
+            if (loop.empty()) {
+                std::cout << "Unmatched closing bracket at " << i << std::endl;
+                error = true;
+                break;
+            }
+            int start = loop.top();
+            loop.pop();
+            loop_bracket_matching[start] = i;
+            loop_bracket_matching[i] = start;
+            open_brackets--;
         }
     }
 
-    for(int i =0;i<code_input.size();i++){
-        if(bracket_matching_error%2 == 0){
-            if(code_input[i] ==  '['){
-                loop.push(i);
-            }
-            else if (code_input[i] == ']'){
-                int start = loop.top();
-                loop.pop();
-                loop_bracket_matching[start] = i;
-                loop_bracket_matching[i] = start;
-            }
-        }
-        else{
-            std::cout<<"error";
-            error = true;
-            break;
-        }
+    if (open_brackets != 0) {
+        std::cout << "Unmatched opening bracket(s)" << std::endl;
+        error = true;
     }
-    if(error == false){
-        for(int i = 0; i < code_input.length(); i++) {
+
+    // run program if no bracket errors
+    if (!error) {
+        for (int i = 0; i < code_input.length(); i++) {
             switch (code_input[i]) {
-                case '+': 
-                    tape[ptr]++; // Unsigned char auto-wraps from 255 to 0
-                    break;
-                case '-': 
-                    tape[ptr]--; // Unsigned char auto-wraps from 0 to 255
-                    break;
-                case '>': 
-                    ptr += 1;
-                    if (ptr >= tape.size()) ptr = 0; // Wrap around if exceeds tape size
-                    
-                    break;
-                case '<': 
-                    ptr -= 1;
-                    if (ptr < 0) ptr = tape.size() - 1; // Wrap around if goes negative
-                    break;
-                case '.': 
-                    // Output current cell as ASCII character
-                    std::cout << static_cast<char>(tape[ptr]);
-                    break;
-                case ',': 
-                    // Read a single character from input
+                case '+': tape[ptr]++; break;
+                case '-': tape[ptr]--; break;
+                case '>': ptr = (ptr + 1) % tape.size(); break;
+                case '<': ptr = (ptr - 1 + tape.size()) % tape.size(); break;
+                case '.': std::cout << static_cast<char>(tape[ptr]); break;
+                case ',': {
                     char input_char;
                     std::cin >> input_char;
                     tape[ptr] = static_cast<unsigned char>(input_char);
                     break;
+                }
                 case '[':
-                    if(tape[ptr] == 0){
-                        i = loop_bracket_matching[i];
-                    }
+                    if (tape[ptr] == 0) i = loop_bracket_matching[i];
                     break;
                 case ']':
-                    if(tape[ptr] != 0){
-                        i = loop_bracket_matching[i];
-                    }
+                    if (tape[ptr] != 0) i = loop_bracket_matching[i];
+                    break;
             }
         }
     }
-    int ok;
-    std::cin>>ok;
+
     return 0;
 }
