@@ -92,9 +92,9 @@ int main(int argc, char *argv[]) {
         }
       }
     }
+    std::string ok;
   } else {
-    std::cout << "BrainFuck Interpreter v 1.016";
+    std::cout << "BrainFuck Interpreter v 1.017" << std::endl;
   }
-  std::string ok;
   return 0;
 }
